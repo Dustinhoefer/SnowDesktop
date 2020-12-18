@@ -276,12 +276,6 @@ public class SnowSimulator {
 	}
 
 	private void handleCursorPosition() {
-		for (int x = this.cursorRect.left; x < this.cursorRect.right; x++) {
-			for (int y = this.cursorRect.top; y < this.cursorRect.bottom; y++) {
-				collisionMap[2560 + x][y] = false;
-			}
-		}
-
 		final int currentCursorPosX = MouseInfo.getPointerInfo().getLocation().x;
 		final int currentCursorPosY = MouseInfo.getPointerInfo().getLocation().y;
 
@@ -302,6 +296,12 @@ public class SnowSimulator {
 					SnowSimulator.getWindows()[x - SnowSimulator.totalScreenRect.left][y] = SnowSimulator.getWindows()[x
 							- SnowSimulator.totalScreenRect.left][y] - 1;
 				}
+			}
+		}
+
+		for (int x = this.cursorRect.left; x < this.cursorRect.right; x++) {
+			for (int y = this.cursorRect.top; y < this.cursorRect.bottom; y++) {
+				collisionMap[2560 + x][y] = false;
 			}
 		}
 
