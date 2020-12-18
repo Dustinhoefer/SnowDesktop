@@ -14,15 +14,16 @@
 //		snowSimulator.start();
 //	}
 //}
-package snowdesktop;
+package de.dortmunddev.snowdesktop;
 
-import data.SnowSimulator;
+import de.dortmunddev.snowdesktop.logic.SnowSimulator;
+import de.dortmunddev.snowdesktop.ui.CustomTrayIcon;
 
-public class SnowDesktopGUI {
+public class SnowDesktop {
 
 	public static void main(final String[] args) throws Exception {
 
-		final TrayIconCustom trayIconCustom = new TrayIconCustom();
+		final CustomTrayIcon trayIconCustom = new CustomTrayIcon();
 		trayIconCustom.setTrayIcon();
 
 		final SnowSimulator snowSimulator = new SnowSimulator();

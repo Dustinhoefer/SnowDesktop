@@ -1,4 +1,4 @@
-package visual;
+package de.dortmunddev.snowdesktop.ui;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -18,7 +18,8 @@ import javax.swing.Timer;
 
 import com.sun.jna.platform.win32.WinDef.RECT;
 
-import data.SnowSimulator;
+import de.dortmunddev.snowdesktop.data.Snowflake;
+import de.dortmunddev.snowdesktop.logic.SnowSimulator;
 
 //used to paint all the snowflakes of a specific monitor
 public class SnowflakePanel extends JPanel {

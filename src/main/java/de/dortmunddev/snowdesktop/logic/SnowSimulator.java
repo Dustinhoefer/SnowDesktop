@@ -1,4 +1,4 @@
-package data;
+package de.dortmunddev.snowdesktop.logic;
 
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
@@ -6,9 +6,6 @@ import java.awt.MouseInfo;
 import java.util.ArrayList;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
-import visual.SnowDesktop;
-import visual.SnowflakePanel;
 
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
@@ -18,9 +15,13 @@ import com.sun.jna.platform.win32.WinDef.RECT;
 import com.sun.jna.platform.win32.WinUser.WINDOWINFO;
 import com.sun.jna.platform.win32.WinUser.WNDENUMPROC;
 
+import de.dortmunddev.snowdesktop.data.WindowHandle;
+import de.dortmunddev.snowdesktop.ui.SnowWindow;
+import de.dortmunddev.snowdesktop.ui.SnowflakePanel;
+
 public class SnowSimulator {
 
-	private static final ArrayList<SnowDesktop> desktops = new ArrayList<SnowDesktop>();
+	private static final ArrayList<SnowWindow> desktops = new ArrayList<SnowWindow>();
 
 	// Rect of the whole monitor setup
 	private final static WinDef.RECT totalScreenRect = new WinDef.RECT();
@@ -29,7 +30,7 @@ public class SnowSimulator {
 	private final WinDef.RECT cursorRect = new WinDef.RECT();
 
 	// Already known windows
-	private final ArrayList<Window> windowList = new ArrayList<Window>();
+	private final ArrayList<WindowHandle> windowList = new ArrayList<WindowHandle>();
 
 	// All occupied pixels by ALL visible windows
 	private static int[][] windows;
@@ -78,18 +79,18 @@ public class SnowSimulator {
 			currentMonitorRect.top = 0;
 			currentMonitorRect.bottom = 1050;
 
-			SnowSimulator.getDesktops().add(new SnowDesktop(currentMonitorRect));
+			SnowSimulator.getDesktops().add(new SnowWindow(currentMonitorRect));
 		}
 
-		for (final SnowDesktop snowDesktop : SnowSimulator.getDesktops()) {
+		for (final SnowWindow snowDesktop : SnowSimulator.getDesktops()) {
 			System.out.println(snowDesktop.getScreenRect());
 		}
 
-		final SnowDesktop[][] desktopsArray = new SnowDesktop[9][9];
+		final SnowWindow[][] desktopsArray = new SnowWindow[9][9];
 
 		desktopsArray[4][4] = SnowSimulator.desktops.get(0);
 
-		for (final SnowDesktop snowDesktop : SnowSimulator.getDesktops()) {
+		for (final SnowWindow snowDesktop : SnowSimulator.getDesktops()) {
 
 		}
 
@@ -129,7 +130,7 @@ public class SnowSimulator {
 	// gets all the visible windows and adds them to the windowList
 	public void getAllWindows() throws InterruptedException {
 
-		for (final Window curWindow : SnowSimulator.this.windowList) {
+		for (final WindowHandle curWindow : SnowSimulator.this.windowList) {
 			curWindow.setStillExists(false);
 		}
 
@@ -145,7 +146,7 @@ public class SnowSimulator {
 				if (User32.IsWindowVisible(arg0) && !title.equals("") && !title.equals("Program Manager")) {
 					boolean alreadyFound = false;
 
-					for (final Window curWindow : SnowSimulator.this.windowList) {
+					for (final WindowHandle curWindow : SnowSimulator.this.windowList) {
 						if (arg0.getPointer().equals(curWindow.getWindowHandle().getPointer())) {
 							alreadyFound = true;
 							curWindow.setStillExists(true);
@@ -153,7 +154,7 @@ public class SnowSimulator {
 						}
 					}
 					if (!alreadyFound) {
-						SnowSimulator.this.windowList.add(new Window(arg0, title, rect));
+						SnowSimulator.this.windowList.add(new WindowHandle(arg0, title, rect));
 						for (int x = rect.left; x < rect.right; x++) {
 							for (int y = rect.top; y < rect.bottom; y++) {
 								if (x - SnowSimulator.totalScreenRect.left > 0 && x - SnowSimulator.totalScreenRect.left < SnowSimulator.getWindows().length && y > 0 && y < SnowSimulator.getWindows()[0].length - 2) {
@@ -169,16 +170,16 @@ public class SnowSimulator {
 			}
 		}, 0);
 
-		final Queue<Window> removeWindowQueue = new ConcurrentLinkedQueue<Window>();
+		final Queue<WindowHandle> removeWindowQueue = new ConcurrentLinkedQueue<WindowHandle>();
 
-		for (final Window curWindow : SnowSimulator.this.windowList) {
+		for (final WindowHandle curWindow : SnowSimulator.this.windowList) {
 			if (curWindow.stillExists() == false) {
 				removeWindowQueue.add(curWindow);
 			}
 		}
 
 		while (!removeWindowQueue.isEmpty()) {
-			final Window curWindow = removeWindowQueue.poll();
+			final WindowHandle curWindow = removeWindowQueue.poll();
 
 			SnowSimulator.this.windowList.remove(curWindow);
 
@@ -198,10 +199,10 @@ public class SnowSimulator {
 	// updates the position and size of all visible windows
 	public void updateWindows() throws InterruptedException {
 		final long start = System.currentTimeMillis();
-		final Queue<Window> toUpdate = new ConcurrentLinkedQueue<Window>();
+		final Queue<WindowHandle> toUpdate = new ConcurrentLinkedQueue<WindowHandle>();
 
 		// Check for a changed Window position/size
-		for (final Window curWindow : SnowSimulator.this.windowList) {
+		for (final WindowHandle curWindow : SnowSimulator.this.windowList) {
 			final WinDef.RECT curRect = curWindow.getRect();
 
 			final WinDef.RECT rect = new WinDef.RECT();
@@ -212,7 +213,7 @@ public class SnowSimulator {
 			}
 		}
 
-		for (final Window curWindow : toUpdate) {
+		for (final WindowHandle curWindow : toUpdate) {
 			final WinDef.RECT newRect = new WinDef.RECT();
 
 			User32.GetWindowRect(curWindow.getWindowHandle(), newRect);
@@ -304,7 +305,7 @@ public class SnowSimulator {
 		return SnowSimulator.totalScreenRect;
 	}
 
-	public static ArrayList<SnowDesktop> getDesktops() {
+	public static ArrayList<SnowWindow> getDesktops() {
 		return SnowSimulator.desktops;
 	}
 

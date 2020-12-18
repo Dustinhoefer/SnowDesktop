@@ -1,4 +1,4 @@
-package visual;
+package de.dortmunddev.snowdesktop.ui;
 
 import java.awt.Color;
 
@@ -6,14 +6,14 @@ import javax.swing.JWindow;
 
 import com.sun.jna.platform.win32.WinDef.RECT;
 
-public class SnowDesktop extends JWindow {
+public class SnowWindow extends JWindow {
 
 	private static final long serialVersionUID = 1L;
 	private static String version = "0.0.3";
 	private final RECT screenRect;
 	private final SnowflakePanel snowflakePanel;
 
-	public SnowDesktop(final RECT currentScreenRect) {
+	public SnowWindow(final RECT currentScreenRect) {
 		this.setSize(currentScreenRect.right - currentScreenRect.left, currentScreenRect.bottom - currentScreenRect.top);
 		this.setLocation(currentScreenRect.left, currentScreenRect.top);
 		this.setBackground(new Color(0, 0, 0, 0));
@@ -27,11 +27,11 @@ public class SnowDesktop extends JWindow {
 	}
 
 	public static String getVersion() {
-		return SnowDesktop.version;
+		return SnowWindow.version;
 	}
 
 	public static void setVersion(final String version) {
-		SnowDesktop.version = version;
+		SnowWindow.version = version;
 	}
 
 	public RECT getScreenRect() {

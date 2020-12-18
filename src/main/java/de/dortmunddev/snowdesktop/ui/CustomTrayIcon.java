@@ -1,4 +1,4 @@
-package snowdesktop;
+package de.dortmunddev.snowdesktop.ui;
 
 import java.awt.AWTException;
 import java.awt.CheckboxMenuItem;
@@ -14,16 +14,15 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
-import visual.SnowDesktop;
-import data.SnowSimulator;
+import de.dortmunddev.snowdesktop.logic.SnowSimulator;
 
-public class TrayIconCustom {
-	static Image image = Toolkit.getDefaultToolkit().getImage(TrayIconCustom.class.getResource("/snowflake.png"));
-	static TrayIcon trayIcon = new TrayIcon(TrayIconCustom.image, "Snowflake V " + SnowDesktop.getVersion());
+public class CustomTrayIcon {
+	static Image image = Toolkit.getDefaultToolkit().getImage(CustomTrayIcon.class.getResource("/snowflake_icon.png"));
+	static TrayIcon trayIcon = new TrayIcon(CustomTrayIcon.image, "Snowflake V " + SnowWindow.getVersion());
 
 	PopupMenu popupMenu = new PopupMenu();
 
-	public TrayIconCustom() {
+	public CustomTrayIcon() {
 
 	}
 
@@ -34,9 +33,9 @@ public class TrayIconCustom {
 	public void setTrayIcon() {
 		if (SystemTray.isSupported()) {
 			final SystemTray tray = SystemTray.getSystemTray();
-			TrayIconCustom.trayIcon.setImageAutoSize(true);
+			CustomTrayIcon.trayIcon.setImageAutoSize(true);
 			try {
-				tray.add(TrayIconCustom.trayIcon);
+				tray.add(CustomTrayIcon.trayIcon);
 			} catch (final AWTException e) {
 				System.err.println(e.getMessage());
 			}
@@ -106,24 +105,24 @@ public class TrayIconCustom {
 			this.popupMenu.addSeparator();
 			this.popupMenu.add(exitItem);
 
-			TrayIconCustom.trayIcon.setPopupMenu(this.popupMenu);
+			CustomTrayIcon.trayIcon.setPopupMenu(this.popupMenu);
 
 		}
 	}
 
 	public void showInfoMsg(final String msg, final String title) {
-		TrayIconCustom.trayIcon.displayMessage(title, msg, TrayIcon.MessageType.INFO);
+		CustomTrayIcon.trayIcon.displayMessage(title, msg, TrayIcon.MessageType.INFO);
 	}
 
 	public void showErrorMsg(final String msg, final String title) {
-		TrayIconCustom.trayIcon.displayMessage(title, msg, TrayIcon.MessageType.ERROR);
+		CustomTrayIcon.trayIcon.displayMessage(title, msg, TrayIcon.MessageType.ERROR);
 	}
 
 	public void showWarningMsg(final String msg, final String title) {
-		TrayIconCustom.trayIcon.displayMessage(title, msg, TrayIcon.MessageType.WARNING);
+		CustomTrayIcon.trayIcon.displayMessage(title, msg, TrayIcon.MessageType.WARNING);
 	}
 
 	public void showMsg(final String msg, final String title) {
-		TrayIconCustom.trayIcon.displayMessage(title, msg, TrayIcon.MessageType.NONE);
+		CustomTrayIcon.trayIcon.displayMessage(title, msg, TrayIcon.MessageType.NONE);
 	}
 }

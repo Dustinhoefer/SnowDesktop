@@ -1,4 +1,4 @@
-package visual;
+package de.dortmunddev.snowdesktop.data;
 
 public class Snowflake {
 

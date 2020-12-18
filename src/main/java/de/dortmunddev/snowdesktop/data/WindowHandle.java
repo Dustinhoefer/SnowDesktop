@@ -1,11 +1,11 @@
-package data;
+package de.dortmunddev.snowdesktop.data;
 
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.platform.win32.WinDef.HWND;
 import com.sun.jna.platform.win32.WinDef.RECT;
 
 //This represents a visible windows window
-public class Window {
+public class WindowHandle {
 
 	private final HWND windowHandle;
 	private final String title;
@@ -19,12 +19,12 @@ public class Window {
 
 	private static int windowCount = 0;
 
-	public Window(final HWND windowHandle, final String title, final RECT rect) {
+	public WindowHandle(final HWND windowHandle, final String title, final RECT rect) {
 		this.windowHandle = windowHandle;
 		this.title = title;
 		this.rect = rect;
-		this.windowID = Window.windowCount;
-		Window.windowCount++;
+		this.windowID = WindowHandle.windowCount;
+		WindowHandle.windowCount++;
 		this.setStillExists(true);
 	}
 
