@@ -3,6 +3,7 @@ package de.dortmunddev.snowdesktop.logic;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.MouseInfo;
+import java.awt.Rectangle;
 import java.util.ArrayList;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -16,6 +17,7 @@ import com.sun.jna.platform.win32.WinUser.WINDOWINFO;
 import com.sun.jna.platform.win32.WinUser.WNDENUMPROC;
 
 import de.dortmunddev.snowdesktop.data.WindowHandle;
+import de.dortmunddev.snowdesktop.ui.CustomTrayIcon;
 import de.dortmunddev.snowdesktop.ui.SnowWindow;
 import de.dortmunddev.snowdesktop.ui.SnowflakePanel;
 
@@ -37,47 +39,48 @@ public class SnowSimulator {
 
 	public SnowSimulator() {
 
-		// Initialize; get resolution of all monitors and the total resolution
-		final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-		final GraphicsDevice gs[] = ge.getScreenDevices();
-		// for (final GraphicsDevice screen : gs) {
-		//
-		// if (screen.getDefaultConfiguration().getBounds().x < SnowSimulator.totalScreenRect.left) {
-		// SnowSimulator.totalScreenRect.left = screen.getDefaultConfiguration().getBounds().x;
-		// }
-		// if (screen.getDefaultConfiguration().getBounds().y < SnowSimulator.totalScreenRect.top) {
-		// SnowSimulator.totalScreenRect.top = screen.getDefaultConfiguration().getBounds().y;
-		// }
-		//
-		// if (screen.getDefaultConfiguration().getBounds().x + screen.getDefaultConfiguration().getBounds().width > SnowSimulator.totalScreenRect.right) {
-		// SnowSimulator.totalScreenRect.right = screen.getDefaultConfiguration().getBounds().x + screen.getDefaultConfiguration().getBounds().width;
-		// }
-		// if (screen.getDefaultConfiguration().getBounds().y + screen.getDefaultConfiguration().getBounds().height > SnowSimulator.totalScreenRect.bottom) {
-		// SnowSimulator.totalScreenRect.bottom = screen.getDefaultConfiguration().getBounds().y + screen.getDefaultConfiguration().getBounds().height;
-		// }
-		//
-		// final WinDef.RECT currentMonitorRect = new WinDef.RECT();
-		// currentMonitorRect.left = screen.getDefaultConfiguration().getBounds().x;
-		// currentMonitorRect.right = screen.getDefaultConfiguration().getBounds().x + screen.getDefaultConfiguration().getBounds().width;
-		// currentMonitorRect.top = screen.getDefaultConfiguration().getBounds().y;
-		// currentMonitorRect.bottom = screen.getDefaultConfiguration().getBounds().y + screen.getDefaultConfiguration().getBounds().height;
-		//
-		// SnowSimulator.getDesktops().add(new SnowDesktop(currentMonitorRect));
-		//
-		// }
+		// First create tray icon
+		final CustomTrayIcon trayIconCustom = new CustomTrayIcon();
+		trayIconCustom.setTrayIcon();
 
-		// Hack to simulate multi and single monitor setups...
-		SnowSimulator.totalScreenRect.left = -1920;
-		SnowSimulator.totalScreenRect.top = 0;
-		SnowSimulator.totalScreenRect.right = 3840;
-		SnowSimulator.totalScreenRect.bottom = 1050;
+//		// Initialize; get resolution of all monitors and the total resolution
+		GraphicsDevice[] monitorData = getMonitorSizes();
 
-		for (int i = 0; i < 3; i++) {
+		for (GraphicsDevice graphicsDevice : monitorData) {
+			Rectangle currentMonitorBounds = graphicsDevice.getDefaultConfiguration().getBounds();
+
+			int currentMonitorHeight = graphicsDevice.getDisplayMode().getHeight();
+
+			float scaling = (float) currentMonitorHeight / (float) currentMonitorBounds.height;
+
+			if (scaling != 1.0f) {
+				currentMonitorBounds.setBounds((int) (currentMonitorBounds.x * scaling),
+						(int) (currentMonitorBounds.y * scaling), (int) (currentMonitorBounds.width * scaling),
+						(int) (currentMonitorBounds.height * scaling));
+				System.out.println("Scaled: " + currentMonitorBounds);
+			}
+
+			if (currentMonitorBounds.getX() < SnowSimulator.totalScreenRect.left) {
+				SnowSimulator.totalScreenRect.left = (int) currentMonitorBounds.getX();
+			}
+
+			if (currentMonitorBounds.getY() < SnowSimulator.totalScreenRect.top) {
+				SnowSimulator.totalScreenRect.top = (int) currentMonitorBounds.getY();
+			}
+
+			if (currentMonitorBounds.getX() > SnowSimulator.totalScreenRect.right) {
+				SnowSimulator.totalScreenRect.right = (int) currentMonitorBounds.getX();
+			}
+
+			if (currentMonitorBounds.getY() > SnowSimulator.totalScreenRect.bottom) {
+				SnowSimulator.totalScreenRect.bottom = (int) currentMonitorBounds.getY();
+			}
+
 			final WinDef.RECT currentMonitorRect = new WinDef.RECT();
-			currentMonitorRect.left = 1920 * i - 1920;
-			currentMonitorRect.right = 1920 * i;
-			currentMonitorRect.top = 0;
-			currentMonitorRect.bottom = 1050;
+			currentMonitorRect.left = (int) currentMonitorBounds.getX();
+			currentMonitorRect.right = (int) currentMonitorBounds.getX() + (int) currentMonitorBounds.getWidth();
+			currentMonitorRect.top = (int) currentMonitorBounds.getY();
+			currentMonitorRect.bottom = (int) currentMonitorBounds.getY() + (int) currentMonitorBounds.getHeight();
 
 			SnowSimulator.getDesktops().add(new SnowWindow(currentMonitorRect));
 		}
@@ -86,17 +89,10 @@ public class SnowSimulator {
 			System.out.println(snowDesktop.getScreenRect());
 		}
 
-		final SnowWindow[][] desktopsArray = new SnowWindow[9][9];
-
-		desktopsArray[4][4] = SnowSimulator.desktops.get(0);
-
-		for (final SnowWindow snowDesktop : SnowSimulator.getDesktops()) {
-
-		}
-
 		// Create an array for the windows
-		SnowSimulator.setWindows(new int[SnowSimulator.totalScreenRect.right - SnowSimulator.totalScreenRect.left][SnowSimulator.totalScreenRect.bottom - SnowSimulator.totalScreenRect.top]); // 23MB
-
+		SnowSimulator.setWindows(new int[SnowSimulator.totalScreenRect.right
+				- SnowSimulator.totalScreenRect.left][SnowSimulator.totalScreenRect.bottom
+						- SnowSimulator.totalScreenRect.top]); // 23MB
 	}
 
 	// Starts a thread which keeps track of all visible windows
@@ -104,18 +100,18 @@ public class SnowSimulator {
 
 		final Thread windowUpdater = new Thread(new Runnable() {
 
+			@Override
 			public void run() {
 				try {
 					SnowSimulator.this.getAllWindows();
 				} catch (final InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+
 				while (true) {
 					try {
 						SnowSimulator.this.updateWindows();
 					} catch (final InterruptedException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
@@ -123,8 +119,8 @@ public class SnowSimulator {
 
 		});
 
-		windowUpdater.setDaemon(true);
-		windowUpdater.start();
+//		windowUpdater.setDaemon(true);
+//		windowUpdater.start();
 	}
 
 	// gets all the visible windows and adds them to the windowList
@@ -135,6 +131,7 @@ public class SnowSimulator {
 		}
 
 		User32.EnumWindows(new WNDENUMPROC() {
+			@Override
 			public boolean callback(final HWND arg0, final Pointer arg1) {
 				final byte[] buffer = new byte[1024];
 				User32.GetWindowTextA(arg0, buffer, buffer.length);
@@ -157,8 +154,12 @@ public class SnowSimulator {
 						SnowSimulator.this.windowList.add(new WindowHandle(arg0, title, rect));
 						for (int x = rect.left; x < rect.right; x++) {
 							for (int y = rect.top; y < rect.bottom; y++) {
-								if (x - SnowSimulator.totalScreenRect.left > 0 && x - SnowSimulator.totalScreenRect.left < SnowSimulator.getWindows().length && y > 0 && y < SnowSimulator.getWindows()[0].length - 2) {
-									SnowSimulator.getWindows()[x - SnowSimulator.totalScreenRect.left][y] = SnowSimulator.getWindows()[x - SnowSimulator.totalScreenRect.left][y] + 1;
+								if (x - SnowSimulator.totalScreenRect.left > 0
+										&& x - SnowSimulator.totalScreenRect.left < SnowSimulator.getWindows().length
+										&& y > 0 && y < SnowSimulator.getWindows()[0].length - 2) {
+									SnowSimulator.getWindows()[x
+											- SnowSimulator.totalScreenRect.left][y] = SnowSimulator.getWindows()[x
+													- SnowSimulator.totalScreenRect.left][y] + 1;
 								}
 							}
 						}
@@ -187,8 +188,11 @@ public class SnowSimulator {
 
 			for (int x = rect.left; x < rect.right; x++) {
 				for (int y = rect.top; y < rect.bottom; y++) {
-					if (x - SnowSimulator.totalScreenRect.left > 0 && x - SnowSimulator.totalScreenRect.left < SnowSimulator.getWindows().length && y > 0 && y < SnowSimulator.getWindows()[0].length - 2) {
-						SnowSimulator.getWindows()[x - SnowSimulator.totalScreenRect.left][y] = SnowSimulator.getWindows()[x - SnowSimulator.totalScreenRect.left][y] - 1;
+					if (x - SnowSimulator.totalScreenRect.left > 0
+							&& x - SnowSimulator.totalScreenRect.left < SnowSimulator.getWindows().length && y > 0
+							&& y < SnowSimulator.getWindows()[0].length - 2) {
+						SnowSimulator.getWindows()[x - SnowSimulator.totalScreenRect.left][y] = SnowSimulator
+								.getWindows()[x - SnowSimulator.totalScreenRect.left][y] - 1;
 					}
 				}
 			}
@@ -208,7 +212,8 @@ public class SnowSimulator {
 			final WinDef.RECT rect = new WinDef.RECT();
 			User32.GetWindowRect(curWindow.getWindowHandle(), rect);
 
-			if (rect.left != curRect.left || rect.right != curRect.right || rect.top != curRect.top || rect.bottom != curRect.bottom) {
+			if (rect.left != curRect.left || rect.right != curRect.right || rect.top != curRect.top
+					|| rect.bottom != curRect.bottom) {
 				toUpdate.add(curWindow);
 			}
 		}
@@ -219,8 +224,11 @@ public class SnowSimulator {
 			User32.GetWindowRect(curWindow.getWindowHandle(), newRect);
 			for (int x = newRect.left; x < newRect.right; x++) {
 				for (int y = newRect.top; y < newRect.bottom; y++) {
-					if (x - SnowSimulator.totalScreenRect.left >= 0 && x - SnowSimulator.totalScreenRect.left < SnowSimulator.getWindows().length && y >= 0 && y < SnowSimulator.getWindows()[0].length) {
-						SnowSimulator.getWindows()[x - SnowSimulator.totalScreenRect.left][y] = SnowSimulator.getWindows()[x - SnowSimulator.totalScreenRect.left][y] + 1;
+					if (x - SnowSimulator.totalScreenRect.left >= 0
+							&& x - SnowSimulator.totalScreenRect.left < SnowSimulator.getWindows().length && y >= 0
+							&& y < SnowSimulator.getWindows()[0].length) {
+						SnowSimulator.getWindows()[x - SnowSimulator.totalScreenRect.left][y] = SnowSimulator
+								.getWindows()[x - SnowSimulator.totalScreenRect.left][y] + 1;
 					}
 				}
 			}
@@ -228,8 +236,11 @@ public class SnowSimulator {
 			final WinDef.RECT rect = curWindow.getRect();
 			for (int x = rect.left; x < rect.right; x++) {
 				for (int y = rect.top; y < rect.bottom; y++) {
-					if (x - SnowSimulator.totalScreenRect.left >= 0 && x - SnowSimulator.totalScreenRect.left < SnowSimulator.getWindows().length && y >= 0 && y < SnowSimulator.getWindows()[0].length) {
-						SnowSimulator.getWindows()[x - SnowSimulator.totalScreenRect.left][y] = SnowSimulator.getWindows()[x - SnowSimulator.totalScreenRect.left][y] - 1;
+					if (x - SnowSimulator.totalScreenRect.left >= 0
+							&& x - SnowSimulator.totalScreenRect.left < SnowSimulator.getWindows().length && y >= 0
+							&& y < SnowSimulator.getWindows()[0].length) {
+						SnowSimulator.getWindows()[x - SnowSimulator.totalScreenRect.left][y] = SnowSimulator
+								.getWindows()[x - SnowSimulator.totalScreenRect.left][y] - 1;
 					}
 				}
 			}
@@ -245,8 +256,10 @@ public class SnowSimulator {
 		// Check if the snow is falling on the cursor
 		for (int x = currentCursorPosX; x < currentCursorPosX + 12; x++) {
 			for (int y = currentCursorPosY; y < currentCursorPosY + 16; y++) {
-				if (x - SnowSimulator.totalScreenRect.left < SnowSimulator.getWindows().length && y < SnowSimulator.getWindows()[0].length) {
-					SnowSimulator.getWindows()[x - SnowSimulator.totalScreenRect.left][y] = SnowSimulator.getWindows()[x - SnowSimulator.totalScreenRect.left][y] + 1;
+				if (x - SnowSimulator.totalScreenRect.left < SnowSimulator.getWindows().length
+						&& y < SnowSimulator.getWindows()[0].length) {
+					SnowSimulator.getWindows()[x - SnowSimulator.totalScreenRect.left][y] = SnowSimulator.getWindows()[x
+							- SnowSimulator.totalScreenRect.left][y] + 1;
 				}
 			}
 		}
@@ -254,7 +267,8 @@ public class SnowSimulator {
 		for (int x = this.cursorRect.left; x < this.cursorRect.right; x++) {
 			for (int y = this.cursorRect.top; y < this.cursorRect.bottom; y++) {
 				if (x < SnowSimulator.getWindows().length && y < SnowSimulator.getWindows()[0].length) {
-					SnowSimulator.getWindows()[x - SnowSimulator.totalScreenRect.left][y] = SnowSimulator.getWindows()[x - SnowSimulator.totalScreenRect.left][y] - 1;
+					SnowSimulator.getWindows()[x - SnowSimulator.totalScreenRect.left][y] = SnowSimulator.getWindows()[x
+							- SnowSimulator.totalScreenRect.left][y] - 1;
 				}
 			}
 		}
@@ -307,6 +321,12 @@ public class SnowSimulator {
 
 	public static ArrayList<SnowWindow> getDesktops() {
 		return SnowSimulator.desktops;
+	}
+
+	private static GraphicsDevice[] getMonitorSizes() {
+		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+		GraphicsDevice[] gs = ge.getScreenDevices();
+		return gs;
 	}
 
 }

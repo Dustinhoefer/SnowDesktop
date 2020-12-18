@@ -17,18 +17,22 @@
 package de.dortmunddev.snowdesktop;
 
 import de.dortmunddev.snowdesktop.logic.SnowSimulator;
-import de.dortmunddev.snowdesktop.ui.CustomTrayIcon;
 
 public class SnowDesktop {
 
+	private static String version = "0.0.3";
+
 	public static void main(final String[] args) throws Exception {
-
-		final CustomTrayIcon trayIconCustom = new CustomTrayIcon();
-		trayIconCustom.setTrayIcon();
-
 		final SnowSimulator snowSimulator = new SnowSimulator();
 		snowSimulator.start();
+	}
 
+	public static String getVersion() {
+		return version;
+	}
+
+	public static void setVersion(final String version) {
+		SnowDesktop.version = version;
 	}
 
 }

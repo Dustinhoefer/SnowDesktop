@@ -14,11 +14,12 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 
+import de.dortmunddev.snowdesktop.SnowDesktop;
 import de.dortmunddev.snowdesktop.logic.SnowSimulator;
 
 public class CustomTrayIcon {
 	static Image image = Toolkit.getDefaultToolkit().getImage(CustomTrayIcon.class.getResource("/snowflake_icon.png"));
-	static TrayIcon trayIcon = new TrayIcon(CustomTrayIcon.image, "Snowflake V " + SnowWindow.getVersion());
+	static TrayIcon trayIcon = new TrayIcon(CustomTrayIcon.image, "Snowflake V " + SnowDesktop.getVersion());
 
 	PopupMenu popupMenu = new PopupMenu();
 
@@ -49,6 +50,7 @@ public class CustomTrayIcon {
 
 			cbLow.addItemListener(new ItemListener() {
 
+				@Override
 				public void itemStateChanged(ItemEvent e) {
 					cbMid.setState(false);
 					cbHigh.setState(false);
@@ -59,6 +61,7 @@ public class CustomTrayIcon {
 
 			cbMid.addItemListener(new ItemListener() {
 
+				@Override
 				public void itemStateChanged(final ItemEvent e) {
 					cbLow.setState(false);
 					cbHigh.setState(false);
@@ -69,6 +72,7 @@ public class CustomTrayIcon {
 
 			cbHigh.addItemListener(new ItemListener() {
 
+				@Override
 				public void itemStateChanged(final ItemEvent e) {
 					cbLow.setState(false);
 					cbMid.setState(false);
@@ -79,6 +83,7 @@ public class CustomTrayIcon {
 
 			cbOff.addItemListener(new ItemListener() {
 
+				@Override
 				public void itemStateChanged(final ItemEvent e) {
 					cbLow.setState(false);
 					cbMid.setState(false);
@@ -90,6 +95,7 @@ public class CustomTrayIcon {
 			final MenuItem exitItem = new MenuItem("Exit");
 			exitItem.addActionListener(new ActionListener() {
 
+				@Override
 				public void actionPerformed(final ActionEvent e) {
 					System.exit(0);
 				}
@@ -105,8 +111,9 @@ public class CustomTrayIcon {
 			this.popupMenu.addSeparator();
 			this.popupMenu.add(exitItem);
 
-			CustomTrayIcon.trayIcon.setPopupMenu(this.popupMenu);
+			SnowSimulator.setSnowIntensity(20);
 
+			CustomTrayIcon.trayIcon.setPopupMenu(this.popupMenu);
 		}
 	}
 

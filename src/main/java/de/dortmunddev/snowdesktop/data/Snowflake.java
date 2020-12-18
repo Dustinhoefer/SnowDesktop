@@ -2,7 +2,6 @@ package de.dortmunddev.snowdesktop.data;
 
 public class Snowflake {
 
-	protected static int size = 2;
 	private float weight;
 	private float fallingDirectionX;
 	private float currentPositionX, currentPositionY;
@@ -14,26 +13,27 @@ public class Snowflake {
 		this.currentPositionY = 0;
 
 		this.fallingDirectionX = (float) Math.random();
+
 		if (Math.random() < 0.5f) {
 			this.fallingDirectionX *= -1;
 		}
+
 		this.weight = 0.5f + (float) (Math.random() * 0.25);
 	}
 
 	public void update() {
-
-		// Update the position of this snowflake according to its weight and falling direction
+		// Update the position of this snowflake according to its weight and falling
+		// direction
 		this.currentPositionX += this.fallingDirectionX;
 		this.currentPositionY += this.weight;
-
 	}
 
 	public float getCurrentPositionX() {
-		return this.currentPositionX;
+		return currentPositionX;
 	}
 
 	public float getCurrentPositionY() {
-		return this.currentPositionY;
+		return currentPositionY;
 	}
 
 	public void setFallen(final boolean fallen) {
