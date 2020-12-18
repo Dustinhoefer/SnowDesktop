@@ -19,6 +19,7 @@ import javax.swing.Timer;
 import com.sun.jna.platform.win32.WinDef.RECT;
 
 import de.dortmunddev.snowdesktop.data.Snowflake;
+import de.dortmunddev.snowdesktop.logic.SnowSimulator;
 
 //used to paint all the snowflakes of a specific monitor
 public class SnowflakePanel extends JPanel {
@@ -48,13 +49,21 @@ public class SnowflakePanel extends JPanel {
 	// Queue to delete old snowflakes
 	private final Queue<Snowflake> snowflakeDeleteQueue = new ConcurrentLinkedQueue<Snowflake>();
 
+	private ArrayList<Snowflake>[] snowflakesTaskbar;
+
 	private final RECT rect;
 
 	public SnowflakePanel(final RECT currentScreenRect) {
 		this.sizeX = currentScreenRect.right - currentScreenRect.left;
 		this.sizeY = currentScreenRect.bottom - currentScreenRect.top;
 		this.rect = currentScreenRect;
-		this.setSize(this.sizeX, this.sizeY);
+		this.setSize(sizeX, sizeY);
+		snowflakesTaskbar = new ArrayList[sizeX];
+
+		for (int i = 0; i < snowflakesTaskbar.length; i++) {
+			snowflakesTaskbar[i] = new ArrayList<>();
+		}
+
 //		this.snowflakes = new ArrayList[this.sizeX][this.sizeY];
 		this.setFocusable(false);
 
@@ -102,64 +111,51 @@ public class SnowflakePanel extends JPanel {
 		// If that is the case, the snowflake will be frozen
 		// If not, the position will be updated
 		for (final Snowflake snowflake : this.snowflakeList) {
-			final boolean hasFallen = snowflake.hasFallen();
 
 			float x = snowflake.getCurrentPositionX();
 			float y = snowflake.getCurrentPositionY();
 
-			if (!hasFallen) {
-//				if (this.snowflakes[x][y] != null) {
-//					this.snowflakes[x][y].remove(snowflake);
-//					if (this.snowflakes[x][y].size() == 0) {
-//						this.snowflakes[x][y] = null;
-//					}
-//				}
-
+			if (!snowflake.hasFallen() && !snowflake.isFallenToGround()) {
 				snowflake.update();
 
 				x = snowflake.getCurrentPositionX();
 				y = snowflake.getCurrentPositionY();
 
-				if (y > this.sizeY - this.taskBarHeight) {
-					snowflake.setPosY(this.sizeY - this.taskBarHeight);
-					snowflake.setFallen(true);
-					System.out.println("True: " + (this.sizeY - this.taskBarHeight));
+				int posX = (int) x;
+
+				if (posX < 0) {
+					posX = 0;
+					snowflake.changeDirection();
+				} else if (posX >= sizeX) {
+					posX = sizeX - 1;
+					snowflake.changeDirection();
 				}
 
-				// Move Snowflakes that are behind a window up to the windows edge; not fully
-				// implemented yet
-//				if (x >= 0 && x < this.sizeX) {
-//					if (y >= 0 && y < this.sizeY) {
-//
-//						boolean changed = false;
-//
-//						if (this.rect.left == -1920) {
-//							while (y > 0 && SnowSimulator.getWindows()[x][y] > 0) {
-//								y = y - 1;
-//								changed = true;
-//							}
-//						} else if (this.rect.left == 0) {
-//							while (y > 0 && SnowSimulator.getWindows()[x + 1920][y] > 0) {
-//								y = y - 1;
-//								changed = true;
-//							}
-//						} else {
-//							while (y > 0 && SnowSimulator.getWindows()[x + (1920 * 2)][y] > 0) {
-//								y = y - 1;
-//								changed = true;
-//							}
-//						}
-//
-//						if (changed) {
-//							y = y + 1;
-//							snowflake.setPosY(y);
-//							snowflake.setFallen(true);
-//						}
-//
-//						this.addSnowflake(x, y, snowflake);
-//					}
-//				}
+				if (y > this.sizeY - this.taskBarHeight - snowflakesTaskbar[posX].size()) {
+					snowflake.setPosY(this.sizeY - this.taskBarHeight - snowflakesTaskbar[posX].size());
+					snowflake.setFallenToGround(true);
+					snowflakesTaskbar[posX].add(snowflake);
+				} else {
+					if (SnowSimulator.collisionMap != null) {
+						if (x > 0 && y > 0) {
+							if (SnowSimulator.collisionMap[(int) x][(int) y]) {
+								snowflake.setFallen(true);
+								System.out.println("lol");
+							}
+						}
+					}
+				}
+
+				// Move Snowflakes that are behind a window up to the windows edge
 			} else {
+				if (!snowflake.isFallenToGround()) {
+					if (SnowSimulator.collisionMap[(int) x][(int) (y + 1)] == false) {
+						snowflake.setFallen(false);
+						snowflake.setFallingDirectionX((float) (Math.random() * 0.1f));
+						snowflake.setWeight((float) (0.7f + Math.random() * 0.3f));
+					}
+				}
+
 //				int index = 0;
 //				if (x >= 0 && x < this.sizeX) {
 //					if (y >= 0 && y < this.sizeY) {
@@ -243,9 +239,27 @@ public class SnowflakePanel extends JPanel {
 		g.clearRect(0, 0, this.sizeX, this.sizeY);
 
 		for (Snowflake snowflake : snowflakeList) {
-			g.setColor(new Color(255, 255, 255, 255));
-			g.fillRect((int) snowflake.getCurrentPositionX(), (int) snowflake.getCurrentPositionY(), 1, 1);
+			if (!snowflake.isFallenToGround() && snowflake.getCurrentPositionY() > 0) {
+				g.setColor(new Color(255, 255, 255, 255));
+				g.fillRect((int) snowflake.getCurrentPositionX(), (int) snowflake.getCurrentPositionY(), 1, 1);
+			}
 		}
+
+		for (int x = 0; x < snowflakesTaskbar.length; x++) {
+			g.setColor(new Color(255, 255, 255, 255));
+			g.fillRect(x, this.sizeY - this.taskBarHeight, 1, -snowflakesTaskbar[x].size());
+		}
+
+//		for (int x = 0; x < sizeX; x++) {
+//			for (int y = 0; y < sizeY; y++) {
+//				if (SnowSimulator.collisionMap != null) {
+//					if (SnowSimulator.collisionMap[x][y]) {
+//						g.setColor(Color.GREEN);
+//						g.fillRect(x, y, 1, 1);
+//					}
+//				}
+//			}
+//		}
 
 		// Draw the snowflakes
 //		for (int x = 0; x < this.sizeX; x++) {

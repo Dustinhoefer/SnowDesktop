@@ -111,7 +111,7 @@ public class CustomTrayIcon {
 			this.popupMenu.addSeparator();
 			this.popupMenu.add(exitItem);
 
-			SnowSimulator.setSnowIntensity(20);
+			SnowSimulator.setSnowIntensity(200);
 
 			CustomTrayIcon.trayIcon.setPopupMenu(this.popupMenu);
 		}

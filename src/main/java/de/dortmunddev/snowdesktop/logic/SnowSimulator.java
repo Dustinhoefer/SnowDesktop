@@ -28,17 +28,17 @@ public class SnowSimulator {
 	// Rect of the whole monitor setup
 	private final static WinDef.RECT totalScreenRect = new WinDef.RECT();
 
-	// Space of the cursor
-	private final WinDef.RECT cursorRect = new WinDef.RECT();
-
 	// Already known windows
 	private final ArrayList<WindowHandle> windowList = new ArrayList<WindowHandle>();
+
+	private RECT cursorRect = new RECT();
 
 	// All occupied pixels by ALL visible windows
 	private static int[][] windows;
 
-	public SnowSimulator() {
+	public static boolean[][] collisionMap;
 
+	public SnowSimulator() {
 		// First create tray icon
 		final CustomTrayIcon trayIconCustom = new CustomTrayIcon();
 		trayIconCustom.setTrayIcon();
@@ -68,12 +68,16 @@ public class SnowSimulator {
 				SnowSimulator.totalScreenRect.top = (int) currentMonitorBounds.getY();
 			}
 
-			if (currentMonitorBounds.getX() > SnowSimulator.totalScreenRect.right) {
-				SnowSimulator.totalScreenRect.right = (int) currentMonitorBounds.getX();
+			if ((int) currentMonitorBounds.getX()
+					+ (int) currentMonitorBounds.getWidth() > SnowSimulator.totalScreenRect.right) {
+				SnowSimulator.totalScreenRect.right = (int) currentMonitorBounds.getX()
+						+ (int) currentMonitorBounds.getWidth();
 			}
 
-			if (currentMonitorBounds.getY() > SnowSimulator.totalScreenRect.bottom) {
-				SnowSimulator.totalScreenRect.bottom = (int) currentMonitorBounds.getY();
+			if ((int) currentMonitorBounds.getY()
+					+ (int) currentMonitorBounds.getHeight() > SnowSimulator.totalScreenRect.bottom) {
+				SnowSimulator.totalScreenRect.bottom = (int) currentMonitorBounds.getY()
+						+ (int) currentMonitorBounds.getHeight();
 			}
 
 			final WinDef.RECT currentMonitorRect = new WinDef.RECT();
@@ -84,6 +88,10 @@ public class SnowSimulator {
 
 			SnowSimulator.getDesktops().add(new SnowWindow(currentMonitorRect));
 		}
+
+		collisionMap = new boolean[SnowSimulator.getTotalScreenRect().left * -1
+				+ SnowSimulator.getTotalScreenRect().right][SnowSimulator.getTotalScreenRect().bottom];
+		System.out.println("CollisionMapSize: " + collisionMap.length + "/" + collisionMap[0].length);
 
 		for (final SnowWindow snowDesktop : SnowSimulator.getDesktops()) {
 			System.out.println(snowDesktop.getScreenRect());
@@ -102,16 +110,22 @@ public class SnowSimulator {
 
 			@Override
 			public void run() {
-				try {
-					SnowSimulator.this.getAllWindows();
-				} catch (final InterruptedException e) {
-					e.printStackTrace();
-				}
+//				try {
+//					SnowSimulator.this.getAllWindows();
+//				} catch (final InterruptedException e) {
+//					e.printStackTrace();
+//				}
 
 				while (true) {
+//					try {
+//						SnowSimulator.this.updateWindows();
+//					} catch (final InterruptedException e) {
+//						e.printStackTrace();
+//					}
+					handleCursorPosition();
 					try {
-						SnowSimulator.this.updateWindows();
-					} catch (final InterruptedException e) {
+						Thread.sleep(10);
+					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 				}
@@ -119,8 +133,8 @@ public class SnowSimulator {
 
 		});
 
-//		windowUpdater.setDaemon(true);
-//		windowUpdater.start();
+		windowUpdater.setDaemon(true);
+		windowUpdater.start();
 	}
 
 	// gets all the visible windows and adds them to the windowList
@@ -250,6 +264,24 @@ public class SnowSimulator {
 
 		this.getAllWindows();
 
+		handleCursorPosition();
+
+		final int value = (int) (16 - (System.currentTimeMillis() - start));
+		if (value > 0) {
+			Thread.sleep(value);
+		}
+
+		Thread.sleep(1000);
+
+	}
+
+	private void handleCursorPosition() {
+		for (int x = this.cursorRect.left; x < this.cursorRect.right; x++) {
+			for (int y = this.cursorRect.top; y < this.cursorRect.bottom; y++) {
+				collisionMap[2560 + x][y] = false;
+			}
+		}
+
 		final int currentCursorPosX = MouseInfo.getPointerInfo().getLocation().x;
 		final int currentCursorPosY = MouseInfo.getPointerInfo().getLocation().y;
 
@@ -278,11 +310,11 @@ public class SnowSimulator {
 		this.cursorRect.top = currentCursorPosY;
 		this.cursorRect.bottom = currentCursorPosY + 16;
 
-		final int value = (int) (16 - (System.currentTimeMillis() - start));
-		if (value > 0) {
-			Thread.sleep(value);
+		for (int x = this.cursorRect.left; x < this.cursorRect.right; x++) {
+			for (int y = this.cursorRect.top; y < this.cursorRect.bottom; y++) {
+				collisionMap[2560 + x][y] = true;
+			}
 		}
-
 	}
 
 	// Native code for JNA functions (user32)
