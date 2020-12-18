@@ -103,7 +103,6 @@ public class SnowSimulator {
 
 		final Thread windowUpdater = new Thread(new Runnable() {
 
-			@Override
 			public void run() {
 				try {
 					SnowSimulator.this.getAllWindows();
@@ -135,7 +134,6 @@ public class SnowSimulator {
 		}
 
 		User32.EnumWindows(new WNDENUMPROC() {
-			@Override
 			public boolean callback(final HWND arg0, final Pointer arg1) {
 				final byte[] buffer = new byte[1024];
 				User32.GetWindowTextA(arg0, buffer, buffer.length);

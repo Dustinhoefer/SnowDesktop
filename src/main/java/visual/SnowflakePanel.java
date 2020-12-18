@@ -58,7 +58,6 @@ public class SnowflakePanel extends JPanel {
 		// This thread generates new snowflakes
 		final Thread snowflakeGenerationThread = new Thread(new Runnable() {
 
-			@Override
 			public void run() {
 				while (true) {
 					try {
@@ -75,7 +74,6 @@ public class SnowflakePanel extends JPanel {
 		// This timer is used to repaint this panel every 10 ms and show the snowflakes
 		final Timer swingAnimator = new Timer(10, new ActionListener() {
 
-			@Override
 			public void actionPerformed(final ActionEvent e) {
 				try {
 					SnowflakePanel.this.updateSnowflakes();

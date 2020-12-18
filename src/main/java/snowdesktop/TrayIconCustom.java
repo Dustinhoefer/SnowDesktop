@@ -28,7 +28,8 @@ public class TrayIconCustom {
 	}
 
 	// Create a tray icon with the menus: Schneestärke and exit;
-	// Schneestärke has the submenus: leicht, mittel and stark, which define the amount of snow, that will fall
+	// Schneestärke has the submenus: leicht, mittel and stark, which define the
+	// amount of snow, that will fall
 	// exit will exit the program
 	public void setTrayIcon() {
 		if (SystemTray.isSupported()) {
@@ -49,8 +50,7 @@ public class TrayIconCustom {
 
 			cbLow.addItemListener(new ItemListener() {
 
-				@Override
-				public void itemStateChanged(final ItemEvent e) {
+				public void itemStateChanged(ItemEvent e) {
 					cbMid.setState(false);
 					cbHigh.setState(false);
 					cbOff.setState(false);
@@ -60,7 +60,6 @@ public class TrayIconCustom {
 
 			cbMid.addItemListener(new ItemListener() {
 
-				@Override
 				public void itemStateChanged(final ItemEvent e) {
 					cbLow.setState(false);
 					cbHigh.setState(false);
@@ -71,7 +70,6 @@ public class TrayIconCustom {
 
 			cbHigh.addItemListener(new ItemListener() {
 
-				@Override
 				public void itemStateChanged(final ItemEvent e) {
 					cbLow.setState(false);
 					cbMid.setState(false);
@@ -82,7 +80,6 @@ public class TrayIconCustom {
 
 			cbOff.addItemListener(new ItemListener() {
 
-				@Override
 				public void itemStateChanged(final ItemEvent e) {
 					cbLow.setState(false);
 					cbMid.setState(false);
@@ -94,7 +91,6 @@ public class TrayIconCustom {
 			final MenuItem exitItem = new MenuItem("Exit");
 			exitItem.addActionListener(new ActionListener() {
 
-				@Override
 				public void actionPerformed(final ActionEvent e) {
 					System.exit(0);
 				}
